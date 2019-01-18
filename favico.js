@@ -6,24 +6,12 @@
  * @version 0.3.10
  */
 
+ /* modified by SRJ to remove cruft and resolve chrome issue when multiple icons exist */
+
 /**
  * Create new favico instance
  * @param {Object} Options
  * @return {Object} Favico object
- * @example
- * var favico = new Favico({
- *    bgColor : '#d00',
- *    textColor : '#fff',
- *    fontFamily : 'sans-serif',
- *    fontStyle : 'bold',
- *    type : 'circle',
- *    position : 'down',
- *    animation : 'slide',
- *    elementId: false,
- *    element: null,
- *    dataUrl: function(url){},
- *    win: window
- * });
  */
 (function () {
 
@@ -31,13 +19,13 @@
 		'use strict';
 		opt = (opt) ? opt : {};
 		var _def = {
-			bgColor: '#d00',
-			textColor: '#fff',
+			bgColor: '#57e451',
+			textColor: '#000000',
 			fontFamily: 'sans-serif', //Arial,Verdana,Times New Roman,serif,sans-serif,...
 			fontStyle: 'bold', //normal,italic,oblique,bold,bolder,lighter,100,200,300,400,500,600,700,800,900
 			type: 'circle',
-			position: 'down', // down, up, left, leftup (upleft)
-			animation: 'slide',
+			position: 'up', // down, up, left, leftup (upleft)
+			animation: 'popFade',
 			elementId: false,
 			element: null,
 			dataUrl: false,
@@ -87,13 +75,13 @@
 							}
 						}
 
-						if (isLeft) {
-							if (step.x < 0.6) {
-								step.x = step.x - 0.4;
-							} else {
-								step.x = step.x - 2 * step.x + (1 - step.h);
-							}
-						}
+						// if (isLeft) {
+						// 	if (step.x < 0.6) {
+						// 		step.x = step.x - 0.4;
+						// 	} else {
+						// 		step.x = step.x - 2 * step.x + (1 - step.h);
+						// 	}
+						// }
 
 						animation.types[a][i] = step;
 					}
@@ -101,12 +89,13 @@
 			}
 			_opt.type = (type['' + _opt.type]) ? _opt.type : _def.type;
 
-			_orig = link. getIcons();
+			_orig = link.getIcons();
 			//create temp canvas
 			_canvas = document.createElement('canvas');
 			//create temp image
 			_img = document.createElement('img');
 			var lastIcon = _orig[_orig.length - 1];
+			//console.log("lastIcon is " + lastIcon.getAttribute('id'));
 			if (lastIcon.hasAttribute('href')) {
 				_img.setAttribute('crossOrigin', 'anonymous');
 				//get width/height
@@ -264,38 +253,6 @@
 			}
 			_context.closePath();
 		};
-		/**
-		 * Generate rectangle
-		 * @param {Object} opt Badge options
-		 */
-		type.rectangle = function (opt) {
-			opt = options(opt);
-			var more = false;
-			if (opt.len === 2) {
-				opt.x = opt.x - opt.w * 0.4;
-				opt.w = opt.w * 1.4;
-				more = true;
-			} else if (opt.len >= 3) {
-				opt.x = opt.x - opt.w * 0.65;
-				opt.w = opt.w * 1.65;
-				more = true;
-			}
-			_context.clearRect(0, 0, _w, _h);
-			_context.drawImage(_img, 0, 0, _w, _h);
-			_context.beginPath();
-			_context.font = _opt.fontStyle + " " + Math.floor(opt.h * (opt.n > 99 ? 0.9 : 1)) + "px " + _opt.fontFamily;
-			_context.textAlign = 'center';
-			_context.fillStyle = 'rgba(' + _opt.bgColor.r + ',' + _opt.bgColor.g + ',' + _opt.bgColor.b + ',' + opt.o + ')';
-			_context.fillRect(opt.x, opt.y, opt.w, opt.h);
-			_context.fillStyle = 'rgba(' + _opt.textColor.r + ',' + _opt.textColor.g + ',' + _opt.textColor.b + ',' + opt.o + ')';
-			//_context.fillText((more) ? '9+' : opt.n, Math.floor(opt.x + opt.w / 2), Math.floor(opt.y + opt.h - opt.h * 0.15));
-			if ((typeof opt.n) === 'number' && opt.n > 999) {
-				_context.fillText(((opt.n > 9999) ? 9 : Math.floor(opt.n / 1000)) + 'k+', Math.floor(opt.x + opt.w / 2), Math.floor(opt.y + opt.h - opt.h * 0.2));
-			} else {
-				_context.fillText(opt.n, Math.floor(opt.x + opt.w / 2), Math.floor(opt.y + opt.h - opt.h * 0.15));
-			}
-			_context.closePath();
-		};
 
 		/**
 		 * Set badge
@@ -384,77 +341,6 @@
 				_readyCb();
 			}
 		};
-		/**
-		 * Set video as icon
-		 */
-		var video = function (videoElement) {
-			_readyCb = function () {
-				try {
-					if (videoElement === 'stop') {
-						_stop = true;
-						icon.reset();
-						_stop = false;
-						return;
-					}
-					//var w = videoElement.width;
-					//var h = videoElement.height;
-					//var ratio = (w / _w < h / _h) ? (w / _w) : (h / _h);
-					videoElement.addEventListener('play', function () {
-						drawVideo(this);
-					}, false);
-
-				} catch (e) {
-					throw new Error('Error setting video. Message: ' + e.message);
-				}
-			};
-			if (_ready) {
-				_readyCb();
-			}
-		};
-		/**
-		 * Set video as icon
-		 */
-		var webcam = function (action) {
-			//UR
-			if (!window.URL || !window.URL.createObjectURL) {
-				window.URL = window.URL || {};
-				window.URL.createObjectURL = function (obj) {
-					return obj;
-				};
-			}
-			if (_browser.supported) {
-				var newVideo = false;
-				navigator.getUserMedia = navigator.getUserMedia || navigator.oGetUserMedia || navigator.msGetUserMedia || navigator.mozGetUserMedia || navigator.webkitGetUserMedia;
-				_readyCb = function () {
-					try {
-						if (action === 'stop') {
-							_stop = true;
-							icon.reset();
-							_stop = false;
-							return;
-						}
-						newVideo = document.createElement('video');
-						newVideo.width = _w;
-						newVideo.height = _h;
-						navigator.getUserMedia({
-							video: true,
-							audio: false
-						}, function (stream) {
-							newVideo.src = URL.createObjectURL(stream);
-							newVideo.play();
-							drawVideo(newVideo);
-						}, function () {
-						});
-					} catch (e) {
-						throw new Error('Error setting webcam. Message: ' + e.message);
-					}
-				};
-				if (_ready) {
-					_readyCb();
-				}
-			}
-
-		};
 
 		var setOpt = function (key, value) {
 			var opts = key;
@@ -475,26 +361,6 @@
 			_queue.push(_lastBadge);
 			icon.start();
 		};
-
-		/**
-		 * Draw video to context and repeat :)
-		 */
-		function drawVideo(video) {
-			if (video.paused || video.ended || _stop) {
-				return false;
-			}
-			//nasty hack for FF webcam (Thanks to Julian Ćwirko, kontakt@redsunmedia.pl)
-			try {
-				_context.clearRect(0, 0, _w, _h);
-				_context.drawImage(video, 0, 0, _w, _h);
-			} catch (e) {
-
-			}
-			_drawTimeout = setTimeout(function () {
-				drawVideo(video);
-			}, animation.duration);
-			link.setIcon(_canvas);
-		}
 
 		var link = {};
 		/**
@@ -529,12 +395,14 @@
 				}
 			}
 			elms.forEach(function(item) {
+				//console.log("setting type on " +  + item.getAttribute('id'));
 				item.setAttribute('type', 'image/png');
 			});
 			return elms;
 		};
 		link.setIcon = function (canvas) {
 			var url = canvas.toDataURL('image/png');
+			//console.log("setIcon " + url);
 			link.setIconSrc(url);
 		};
 		link.setIconSrc = function (url) {
@@ -543,11 +411,13 @@
 				_opt.dataUrl(url);
 			}
 			if (_opt.element) {
+				//console.log('set by element ' + _opt.element.getAttribute("id"));
 				_opt.element.setAttribute('href', url);
 				_opt.element.setAttribute('src', url);
 			} else if (_opt.elementId) {
 				//if is attached to element (image)
 				var elm = _doc.getElementById(_opt.elementId);
+				//console.log('set by elementId ' + _opt.elementId);
 				elm.setAttribute('href', url);
 				elm.setAttribute('src', url);
 			} else {
@@ -571,19 +441,15 @@
 					}
 				} else {
 					_orig.forEach(function(icon) {
+						//console.log("setting for icon " + icon.getAttribute("id"));
 						icon.setAttribute('href', url);
 					});
 				}
 			}
 		};
 
-		//http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb#answer-5624139
 		//HEX to RGB convertor
 		function hexToRgb(hex) {
-			var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-			hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-				return r + r + g + g + b + b;
-			});
 			var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 			return result ? {
 				r: parseInt(result[1], 16),
@@ -627,123 +493,7 @@
 		 * Animation types (none,fade,pop,slide)
 		 */
 		animation.types = {};
-		animation.types.fade = [{
-			x: 0.4,
-			y: 0.4,
-			w: 0.6,
-			h: 0.6,
-			o: 0.0
-		}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.1
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.2
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.3
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.4
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.5
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.6
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.7
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.8
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 0.9
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 1.0
-			}];
-		animation.types.none = [{
-			x: 0.4,
-			y: 0.4,
-			w: 0.6,
-			h: 0.6,
-			o: 1
-		}];
-		animation.types.pop = [{
-			x: 1,
-			y: 1,
-			w: 0,
-			h: 0,
-			o: 1
-		}, {
-				x: 0.9,
-				y: 0.9,
-				w: 0.1,
-				h: 0.1,
-				o: 1
-			}, {
-				x: 0.8,
-				y: 0.8,
-				w: 0.2,
-				h: 0.2,
-				o: 1
-			}, {
-				x: 0.7,
-				y: 0.7,
-				w: 0.3,
-				h: 0.3,
-				o: 1
-			}, {
-				x: 0.6,
-				y: 0.6,
-				w: 0.4,
-				h: 0.4,
-				o: 1
-			}, {
-				x: 0.5,
-				y: 0.5,
-				w: 0.5,
-				h: 0.5,
-				o: 1
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 1
-			}];
+
 		animation.types.popFade = [{
 			x: 0.75,
 			y: 0.75,
@@ -787,62 +537,14 @@
 				h: 0.6,
 				o: 1
 			}];
-		animation.types.slide = [{
-			x: 0.4,
-			y: 1,
-			w: 0.6,
-			h: 0.6,
-			o: 1
-		}, {
-				x: 0.4,
-				y: 0.9,
-				w: 0.6,
-				h: 0.6,
-				o: 1
-			}, {
-				x: 0.4,
-				y: 0.9,
-				w: 0.6,
-				h: 0.6,
-				o: 1
-			}, {
-				x: 0.4,
-				y: 0.8,
-				w: 0.6,
-				h: 0.6,
-				o: 1
-			}, {
-				x: 0.4,
-				y: 0.7,
-				w: 0.6,
-				h: 0.6,
-				o: 1
-			}, {
-				x: 0.4,
-				y: 0.6,
-				w: 0.6,
-				h: 0.6,
-				o: 1
-			}, {
-				x: 0.4,
-				y: 0.5,
-				w: 0.6,
-				h: 0.6,
-				o: 1
-			}, {
-				x: 0.4,
-				y: 0.4,
-				w: 0.6,
-				h: 0.6,
-				o: 1
-			}];
-		/**
-		 * Run animation
-		 * @param {Object} opt Animation options
-		 * @param {Object} cb Callabak after all steps are done
-		 * @param {Object} revert Reverse order? true|false
-		 * @param {Object} step Optional step number (frame bumber)
-		 */
+		
+		// /**
+		//  * Run animation
+		//  * @param {Object} opt Animation options
+		//  * @param {Object} cb Callabak after all steps are done
+		//  * @param {Object} revert Reverse order? true|false
+		//  * @param {Object} step Optional step number (frame bumber)
+		//  */
 		animation.run = function (opt, cb, revert, step) {
 			var animationType = animation.types[isPageHidden() ? 'none' : _opt.animation];
 			if (revert === true) {
@@ -869,14 +571,15 @@
 				return;
 			}
 		};
+
 		//auto init
 		init();
 		return {
 			badge: badge,
-			video: video,
+			// video: video,
 			image: image,
 			rawImageSrc: rawImageSrc,
-			webcam: webcam,
+			// webcam: webcam,
 			setOpt: setOpt,
 			reset: icon.reset,
 			browser: {
