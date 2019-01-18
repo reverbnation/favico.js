@@ -1,3 +1,6 @@
+# Modified
+Removed cruft and options we don't need, also default npm version didnt seem to work  See original
+
 [![volkswagen status](https://auchenberg.github.io/volkswagen/volkswargen_ci.svg?v=1)](https://github.com/auchenberg/volkswagen)
 # favico.js
 More info [here](http://lab.ejci.net/favico.js/).
