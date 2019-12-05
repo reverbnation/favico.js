@@ -493,7 +493,13 @@
 		 * Animation types (none,fade,pop,slide)
 		 */
 		animation.types = {};
-
+		animation.types.none = [{
+			x: 0.4,
+			y: 0.4,
+			w: 0.6,
+			h: 0.6,
+			o: 1
+		}];
 		animation.types.popFade = [{
 			x: 0.75,
 			y: 0.75,
